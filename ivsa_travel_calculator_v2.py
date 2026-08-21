@@ -3,7 +3,7 @@ import streamlit as st
 # 페이지 설정
 st.set_page_config(
     page_title="IVSA 임원진 교통비 환급 계산기",
-    page_icon="🏥",
+    page_icon="💳",
     layout="centered",
     initial_sidebar_state="collapsed"
 )
