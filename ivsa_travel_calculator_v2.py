@@ -67,7 +67,7 @@ st.write("---")
 
 with st.form("calculator_form"):
     st.subheader("이동 1")
-    fare1 = st.number_input("우등 고속버스 기준 요금 (원)", min_value=0, value=13300, step=100)
+    fare1 = st.number_input("우등 고속버스 기준 요금 1 (원)", min_value=0, value=13300, step=100)
     duration_choice1 = st.selectbox(
         "가는 편 소요 시간 / 제주대 항공 여부 선택",
         options=[
@@ -81,7 +81,7 @@ with st.form("calculator_form"):
 
     st.write("")
     st.subheader("이동 2")
-    fare2 = st.number_input("우등 고속버스 기준 요금 (원)", min_value=0, value=13300, step=100)
+    fare2 = st.number_input("우등 고속버스 기준 요금 2 (원)", min_value=0, value=13300, step=100)
     duration_choice2 = st.selectbox(
         "오는 편 소요 시간 / 제주대 항공 여부 선택",
         options=[
