@@ -45,7 +45,7 @@ st.markdown("""
     </style>
 """, unsafe_allow_html=True)
 
-st.title("🏥 IVSA 임원진 교통비 환급 계산기")
+st.title("🚍 IVSA 임원진 교통비 환급 계산기")
 st.write("IVSA 임원진 환급 규정에 맞춰 본인의 최종 환급액을 미리 계산해 볼 수 있는 계산기입니다.")
 st.write("해당 계산기를 이용하여 구글폼에 **환급 신청 금액**을 작성해주세요.")
 
