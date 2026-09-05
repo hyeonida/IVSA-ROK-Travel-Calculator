@@ -45,135 +45,222 @@ st.markdown("""
     </style>
 """, unsafe_allow_html=True)
 
-st.title("🚍 IVSA 임원진 교통비 환급 계산기")
+st.title("🇰🇷 IVSA 임원진 교통비 환급 계산기")
 st.write("IVSA 임원진 환급 규정에 맞춰 본인의 최종 환급액을 미리 계산해 볼 수 있는 계산기입니다.")
-st.write("해당 계산기를 이용하여 구글폼에 **환급 신청 금액**을 작성해주세요.")
 
 # 안내 문구 (접이식)
 with st.expander("📌 IVSA 교통비 환급 핵심 규정 보기"):
     st.markdown("""
-    * **기본 원칙:** 실제 이용 교통수단(KTX, 비행기 등)과 관계없이 **도시 간 우등 고속버스 요금**을 기준으로 지급합니다.
+    * **기본 원칙:** 실제 이용 교통수단(KTX, 비행기 등)과 관계없이 **도시 간 우등 고속버스 요금**을 기준으로 지급합니다. [2]
     * **소요 시간 가산금 (편도당):**
-        * 편도 소요 시간 **2시간 30분 이상**: 편도 요금 +10,000원 추가
-        * 편도 소요 시간 **3시간 30분 이상**: 편도 요금 +15,000원 추가
-        * **제주대생 항공편 이용 시**: 소요 시간 관계없이 편도 요금 +15,000원 추가
+        * 편도 소요 시간 **2시간 30분 이상**: 편도 요금 +10,000원 추가 [2]
+        * 편도 소요 시간 **3시간 30분 이상**: 편도 요금 +15,000원 추가 [2]
+        * **제주대생 항공편 이용 시**: 소요 시간 관계없이 편도 요금 +15,000원 추가 [2]
     * **5만원 초과 상한선 규정:** 
-        * 환급 기준액(x)이 50,000원을 초과할 경우, 초과 금액의 50%만 인정됩니다. 
-        * **공식:** (x - 50,000) / 2 + 50,000 ₩
-    * **실제 지출액 상한선:** 계산된 환급액이 아무리 높더라도, **실제로 지출한 금액(영수증 총합)을 초과할 수 없습니다.**
+        * 환급 기준액($X$)이 50,000원을 초과할 경우, 초과 금액의 50%만 인정됩니다. 
+        * **공식:** $(X - 50,000) / 2 + 50,000$ [2]
+    * **실제 지출액 상한선:** 계산된 환급액이 아무리 높더라도, **실제로 지출한 금액(영수증 총합)을 초과할 수 없습니다.** [2, 3]
     """)
 
-# 입력 폼 시작
 st.write("---")
 
-with st.form("calculator_form"):
-    st.subheader("이동 1")
-    fare1 = st.number_input("우등 고속버스 기준 요금 1 (원)", min_value=0, value=13300, step=100)
-    duration_choice1 = st.selectbox(
-        "가는 편 소요 시간 / 제주대 항공 여부 선택",
-        options=[
-            "2시간 30분 미만 (추가금 없음)",
-            "2시간 30분 이상 ~ 3시간 30분 미만 (편도 +10,000원 가산)",
-            "3시간 30분 이상 (편도 +15,000원 가산)",
-            "제주대학교 학생 - 항공편 이용 (편도 +15,000원 가산)"
-        ],
-        index=0
-    )
+# 1. 소속 대학 유형 선택 (일반 육지 대학 vs 제주대학교)
+college_type = st.radio(
+    "🏫 소속 수의과대학 유형을 선택해 주세요(제주도 항공 편 이용 시에만 제주대학교 선택)",
+    options=["일반", "제주대학교 (항공편 이용)"],
+    index=0,
+    horizontal=True
+)
 
-    st.write("")
-    st.subheader("이동 2")
-    fare2 = st.number_input("우등 고속버스 기준 요금 2 (원)", min_value=0, value=13300, step=100)
-    duration_choice2 = st.selectbox(
-        "오는 편 소요 시간 / 제주대 항공 여부 선택",
-        options=[
-            "2시간 30분 미만 (추가금 없음)",
-            "2시간 30분 이상 ~ 3시간 30분 미만 (편도 +10,000원 가산)",
-            "3시간 30분 이상 (편도 +15,000원 가산)",
-            "제주대학교 학생 - 항공편 이용 (편도 +15,000원 가산)"
-        ],
-        index=0
-    )
+st.write("")
 
-    st.write("")
-    st.subheader("🧾 증빙 및 실지출액")
-    actual_spent = st.number_input("실제 교통비로 지출한 총 금액 (모든 영수증의 합계, 원)", min_value=0, value=30000, step=100)
+# 폼 생성
+if college_type == "일반 수의과대학 (육지 소재)":
+    with st.form("main_calculator_form"):
+        st.subheader("가는 편")
+        fare1 = st.number_input("가는 편 우등 고속버스 기준 요금 (원)", min_value=0, value=13300, step=100, key="fare1")
+        duration_choice1 = st.selectbox(
+            "가는 편 소요 시간 선택",
+            options=[
+                "2시간 30분 미만 (추가금 없음)",
+                "2시간 30분 이상 ~ 3시간 30분 미만 (편도 +10,000원 가산)",
+                "3시간 30분 이상 (편도 +15,000원 가산)"
+            ],
+            index=0,
+            key="dur1"
+        )
 
-    # 제출 버튼
-    submitted = st.form_submit_button("💰 환급 금액 계산하기")
+        st.write("")
+        st.subheader("오는 편")
+        fare2 = st.number_input("오는 편 우등 고속버스 기준 요금 (원)", min_value=0, value=13300, step=100, key="fare2")
+        duration_choice2 = st.selectbox(
+            "오는 편 소요 시간 선택",
+            options=[
+                "2시간 30분 미만 (추가금 없음)",
+                "2시간 30분 이상 ~ 3시간 30분 미만 (편도 +10,000원 가산)",
+                "3시간 30분 이상 (편도 +15,000원 가산)"
+            ],
+            index=0,
+            key="dur2"
+        )
 
-if submitted:
-    # 1. 가는 편 가산금 판정
-    add1 = 0
-    if "3시간 30분 이상" in duration_choice1 or "제주대학교" in duration_choice1:
-        add1 = 15000
-    elif "2시간 30분 이상" in duration_choice1:
-        add1 = 10000
-    total1 = fare1 + add1
+        st.write("")
+        st.subheader("🧾 증빙 및 실지출액")
+        actual_spent = st.number_input("실제 교통비로 지출한 총 금액 (모든 영수증의 합계, 원)", min_value=0, value=30000, step=100, key="actual")
 
-    # 2. 오는 편 가산금 판정
-    add2 = 0
-    if "3시간 30분 이상" in duration_choice2 or "제주대학교" in duration_choice2:
-        add2 = 15000
-    elif "2시간 30분 이상" in duration_choice2:
-        add2 = 10000
-    total2 = fare2 + add2
+        # 제출 버튼
+        submitted = st.form_submit_button("💰 환급 금액 계산하기")
 
-    # 3. 총 기준액(X) 산출
-    total_x = total1 + total2
+    if submitted:
+        # 1. 가는 편 가산금 판정
+        add1 = 0
+        if "3시간 30분 이상" in duration_choice1:
+            add1 = 15000
+        elif "2시간 30분 이상" in duration_choice1:
+            add1 = 10000
+        total1 = fare1 + add1
 
-    # 4. 50,000원 초과 규정 적용
-    is_capped = False
-    if total_x > 50000:
-        calculated_amount = (total_x - 50000) / 2 + 50000
-        is_capped = True
-    else:
-        calculated_amount = total_x
+        # 2. 오는 편 가산금 판정
+        add2 = 0
+        if "3시간 30분 이상" in duration_choice2:
+            add2 = 15000
+        elif "2시간 30분 이상" in duration_choice2:
+            add2 = 10000
+        total2 = fare2 + add2
 
-    # 5. 실제 지불액 상한선 적용
-    final_refund = min(calculated_amount, actual_spent)
-    is_actual_spent_limit = calculated_amount > actual_spent
+        # 3. 총 기준액(X) 산출
+        total_x = total1 + total2
 
-    # 결과 화면 출력
-    st.markdown("### 📊 계산 결과")
-    
-    # 최종 결과 카드
-    st.markdown(f"""
-        <div class="result-box">
-            <h4 style="margin:0; color:#0F52BA;">최종 환급 결정액</h4>
-            <p style="font-size: 2rem; font-weight: bold; margin: 5px 0 0 0; color:#0A3D91;">
-                {int(final_refund):,} 원
-            </p>
-        </div>
-    """, unsafe_allow_html=True)
+        # 4. 50,000원 초과 규정 적용
+        is_capped = False
+        if total_x > 50000:
+            calculated_amount = (total_x - 50000) / 2 + 50000
+            is_capped = True
+        else:
+            calculated_amount = total_x
 
-    # 상세 계산 내역 설명
-    st.markdown("#### 🔍 세부 산출 과정")
-    col1, col2 = st.columns(2)
-    with col1:
+        # 5. 실제 지불액 상한선 적용
+        final_refund = min(calculated_amount, actual_spent)
+        is_actual_spent_limit = calculated_amount > actual_spent
+
+        # 결과 화면 출력
+        st.markdown("### 📊 계산 결과")
+        
+        # 최종 결과 카드
         st.markdown(f"""
-        **🛫 가는 편 기준액:**  
-        * 기본 요금: {fare1:,}원  
-        * 추가 가산금: {add1:,}원  
-        * **소계: {total1:,}원**
-        """)
-    with col2:
+            <div class="result-box">
+                <h4 style="margin:0; color:#0F52BA;">최종 환급 결정액</h4>
+                <p style="font-size: 2rem; font-weight: bold; margin: 5px 0 0 0; color:#0A3D91;">
+                    {int(final_refund):,} 원
+                </p>
+            </div>
+        """, unsafe_allow_html=True)
+
+        # 상세 계산 내역 설명
+        st.markdown("#### 🔍 세부 산출 과정")
+        col1, col2 = st.columns(2)
+        with col1:
+            st.markdown(f"""
+            **가는 편 기준액:**  
+            * 기본 요금: {fare1:,}원  
+            * 추가 가산금: {add1:,}원  
+            * **소계: {total1:,}원**
+            """)
+        with col2:
+            st.markdown(f"""
+            **오는 편 기준액:**  
+            * 기본 요금: {fare2:,}원  
+            * 추가 가산금: {add2:,}원  
+            * **소계: {total2:,}원**
+            """)
+
+        st.markdown(f"**규정 적용 전 기준 합계 ($X$):** {total_x:,}원")
+        
+        if is_capped:
+            st.markdown(f"⚠️ **5만원 초과 감액 적용:** 기준액이 50,000원을 초과하여 공식 `(X - 50,000) / 2 + 50,000`이 적용되었습니다. → **{int(calculated_amount):,}원**")
+        else:
+            st.markdown(f"✅ **5만원 이하 정상 적용:** 기준액이 50,000원 이하이므로 전액 인정됩니다. → **{int(calculated_amount):,}원**")
+
+        if is_actual_spent_limit:
+            st.markdown(f"⚠️ **영수증 지출 한도 제한:** 계산된 환급액이 실제 지출한 금액({actual_spent:,}원)보다 크므로, 규정에 따라 **실제 영수증 지출 금액까지만 환급**됩니다.")
+        else:
+            st.markdown("✅ **영수증 한도 검증 완료:** 계산된 환급액이 실제 영수증 범위 내에 있으므로 전액 환급이 가능합니다.")
+
+        st.info("💡 계산된 환급 금액은 규정 기준을 엄격하게 적용한 금액이며, 최종 지급을 위해서는 제출하신 버스 기준 요금 캡처 및 영수증 증빙이 일치해야 합니다.")
+
+else:
+    # 제주대학교 전용 폼
+    with st.form("jeju_calculator_form"):
+        st.subheader("✈️ 제주대학교 학생 항공편 정산")
+        st.write("제주대학교 학생은 규정에 따라 실제 비행기표 구매 금액을 기준으로 정산하며, 편도당 15,000원의 항공 이용 가산금이 추가됩니다. [1, 2]")
+        
+        trip_type = st.radio(
+            "여정 종류를 선택하세요",
+            options=["왕복 (Round Trip)", "편도 (One Way)"],
+            index=0,
+            horizontal=True,
+            key="jeju_trip"
+        )
+        
+        flight_fare = st.number_input(
+            "실제 비행기표 결제 총 금액 (영수증 합계, 원)",
+            min_value=0,
+            value=120000,
+            step=1000,
+            key="jeju_flight_fare"
+        )
+        
+        submitted_jeju = st.form_submit_button("💰 제주대 환급 금액 계산하기")
+
+    if submitted_jeju:
+        # 제주대 환급 로직
+        # 1. 항공 가산금 판정 (왕복 30,000원 / 편도 15,000원)
+        extra_fee = 30000 if "왕복" in trip_type else 15000
+        
+        # 2. 총 기준액 (X) = 실제 비행기 요금 (기준액) + 가산금
+        total_x = flight_fare + extra_fee
+        
+        # 3. 50,000원 초과 규정 적용
+        is_capped = False
+        if total_x > 50000:
+            calculated_amount = (total_x - 50000) / 2 + 50000
+            is_capped = True
+        else:
+            calculated_amount = total_x
+            
+        # 4. 실제 지불액 상한선 적용 (제주대생은 비행기 요금 자체가 지불액이므로 flight_fare가 actual_spent가 됨)
+        final_refund = min(calculated_amount, flight_fare)
+        is_actual_spent_limit = calculated_amount > flight_fare
+        
+        # 결과 화면 출력
+        st.markdown("### 📊 계산 결과")
+        
+        # 최종 결과 카드
         st.markdown(f"""
-        **🛬 오는 편 기준액:**  
-        * 기본 요금: {fare2:,}원  
-        * 추가 가산금: {add2:,}원  
-        * **소계: {total2:,}원**
+            <div class="result-box">
+                <h4 style="margin:0; color:#0F52BA;">최종 환급 결정액 (제주대 항공편 전용)</h4>
+                <p style="font-size: 2rem; font-weight: bold; margin: 5px 0 0 0; color:#0A3D91;">
+                    {int(final_refund):,} 원
+                </p>
+            </div>
+        """, unsafe_allow_html=True)
+
+        # 상세 계산 내역 설명
+        st.markdown("#### 🔍 세부 산출 과정")
+        st.markdown(f"""
+        * **✈️ 비행기 요금 (기본 기준액):** {flight_fare:,}원
+        * **💳 제주대 항공 가산금:** {extra_fee:,}원 ({trip_type} 적용)
+        * **규정 적용 전 기준 합계 ($X$):** **{total_x:,}원**
         """)
+        
+        if is_capped:
+            st.markdown(f"⚠️ **5만원 초과 감액 적용:** 기준액이 50,000원을 초과하여 공식 `(X - 50,000) / 2 + 50,000`이 적용되었습니다. → **{int(calculated_amount):,}원**")
+        else:
+            st.markdown(f"✅ **5만원 이하 정상 적용:** 기준액이 50,000원 이하이므로 전액 인정됩니다. → **{int(calculated_amount):,}원**")
 
-    st.markdown(f"**시외/고속버스 이용기준 상 환급 가능 금액 :** {total_x:,}원")
-    
-    if is_capped:
-        st.markdown(f"⚠️ **5만원 초과 감액 적용:** 기준액이 50,000원을 초과하여 공식 `(x - 50,000) / 2 + 50,000`이 적용되었습니다. → **{int(calculated_amount):,}원**")
-    else:
-        st.markdown(f"✅ **5만원 이하 정상 적용:** 기준액이 50,000원 이하이므로 전액 인정됩니다. → **{int(calculated_amount):,}원**")
+        if is_actual_spent_limit:
+            st.markdown(f"⚠️ **영수증 지출 한도 제한:** 계산된 환급액이 비행기표 결제 금액({flight_fare:,}원)보다 크므로, 규정에 따라 **실제 영수증 지출 금액까지만 환급**됩니다.")
+        else:
+            st.markdown("✅ **영수증 한도 검증 완료:** 계산된 환급액이 실제 영수증 범위 내에 있으므로 전액 환급이 가능합니다.")
 
-    if is_actual_spent_limit:
-        st.markdown(f"⚠️ **영수증 지출 한도 제한:** 계산된 환급액이 실제 지출한 금액({actual_spent:,}원)보다 크므로, 규정에 따라 **실제 영수증 지출 금액까지만 환급**됩니다.")
-    else:
-        st.markdown("✅ **영수증 한도 검증 완료:** 계산된 환급액이 실제 영수증 범위 내에 있으므로 전액 환급이 가능합니다.")
-
-    st.info("💡 계산된 환급 금액은 규정 기준을 엄격하게 적용한 금액이며, 최종 지급을 위해서는 제출하신 버스 기준 요금 캡처 및 영수증 증빙이 일치해야 합니다.")
+        st.info("💡 비행기 탑승권과 영수증 증빙을 모두 업로드해야 정상 환급 처리가 완료됩니다.")
