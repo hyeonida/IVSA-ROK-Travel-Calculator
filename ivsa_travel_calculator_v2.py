@@ -75,7 +75,7 @@ college_type = st.radio(
 st.write("")
 
 # 폼 생성
-if college_type == "일반 수의과대학 (육지 소재)":
+if college_type == "일반":
     with st.form("main_calculator_form"):
         st.subheader("가는 편")
         fare1 = st.number_input("가는 편 우등 고속버스 기준 요금 (원)", min_value=0, value=13300, step=100, key="fare1")
